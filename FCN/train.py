@@ -86,6 +86,7 @@ f = open("losslog.txt", "w")
 train_err = []
 val_err = []
 epoch = 0
+criterion = nn.NLLLoss2d()
 while(epoch<max_epoch):
     for j in ['train', 'val']:
         dataset_loader = val_dataset_loader
@@ -104,7 +105,9 @@ while(epoch<max_epoch):
             optimizer.zero_grad()
             out = model(img)
             # print(out.shape)
-            loss = cross_entropy2d(out, seg, size_average=False)
+            
+            loss = criterion(F.log_softmax(out),seg)   # seg should be of size (batch_size,128,128)
+            # loss = cross_entropy2d(out, seg, size_average=False)  
             loss = loss / batch
             running_loss += loss.item()
             if(j == 'val'):
