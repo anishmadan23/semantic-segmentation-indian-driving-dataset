@@ -1,72 +1,112 @@
 import torch
 from torch import nn
 from torchvision import models
-
-from ..utils import initialize_weights
-from .config import vgg19_bn_path
-
-
-class _DecoderBlock(nn.Module):
-    def __init__(self, in_channels, out_channels, num_conv_layers):
-        super(_DecoderBlock, self).__init__()
-        middle_channels = in_channels / 2
-        layers = [
-            nn.ConvTranspose2d(in_channels, in_channels, kernel_size=2, stride=2),
-            nn.Conv2d(in_channels, middle_channels, kernel_size=3, padding=1),
-            nn.BatchNorm2d(middle_channels),
-            nn.ReLU(inplace=True)
-        ]
-        layers += [
-                      nn.Conv2d(middle_channels, middle_channels, kernel_size=3, padding=1),
-                      nn.BatchNorm2d(middle_channels),
-                      nn.ReLU(inplace=True),
-                  ] * (num_conv_layers - 2)
-        layers += [
-            nn.Conv2d(middle_channels, out_channels, kernel_size=3, padding=1),
-            nn.BatchNorm2d(out_channels),
-            nn.ReLU(inplace=True),
-        ]
-        self.decode = nn.Sequential(*layers)
-
-    def forward(self, x):
-        return self.decode(x)
-
+from utils import *
 
 class SegNet(nn.Module):
     def __init__(self, num_classes, pretrained=True):
+
+        self.num_classes = num_classes
         super(SegNet, self).__init__()
-        vgg = models.vgg19_bn()
-        if pretrained:
-            vgg.load_state_dict(torch.load(vgg19_bn_path))
+        vgg = models.vgg16_bn(pretrained=True)
+
         features = list(vgg.features.children())
         self.enc1 = nn.Sequential(*features[0:7])
         self.enc2 = nn.Sequential(*features[7:14])
-        self.enc3 = nn.Sequential(*features[14:27])
-        self.enc4 = nn.Sequential(*features[27:40])
-        self.enc5 = nn.Sequential(*features[40:])
+        self.enc3 = nn.Sequential(*features[14:24])
+        self.enc4 = nn.Sequential(*features[24:34])
+        self.enc5 = nn.Sequential(*features[34:])
 
-        self.dec5 = nn.Sequential(
-            *([nn.ConvTranspose2d(512, 512, kernel_size=2, stride=2)] +
-              [nn.Conv2d(512, 512, kernel_size=3, padding=1),
-               nn.BatchNorm2d(512),
-               nn.ReLU(inplace=True)] * 4)
-        )
-        self.dec4 = _DecoderBlock(1024, 256, 4)
-        self.dec3 = _DecoderBlock(512, 128, 4)
-        self.dec2 = _DecoderBlock(256, 64, 2)
-        self.dec1 = _DecoderBlock(128, num_classes, 2)
-        initialize_weights(self.dec5, self.dec4, self.dec3, self.dec2, self.dec1)
 
-    def forward(self, x):
-        enc1 = self.enc1(x)
-        enc2 = self.enc2(enc1)
-        enc3 = self.enc3(enc2)
-        enc4 = self.enc4(enc3)
-        enc5 = self.enc5(enc4)
+        self.dec5 = seg_dec_type2(512, 512)
+        self.dec4 = seg_dec_type2(512, 256)
+        self.dec3 = seg_dec_type2(256, 128)
+        self.dec2 = seg_dec_type1(128, 64)
+        self.dec1 = seg_dec_type1(64, num_classes)
 
-        dec5 = self.dec5(enc5)
-        dec4 = self.dec4(torch.cat([enc4, dec5], 1))
-        dec3 = self.dec3(torch.cat([enc3, dec4], 1))
-        dec2 = self.dec2(torch.cat([enc2, dec3], 1))
-        dec1 = self.dec1(torch.cat([enc1, dec2], 1))
-        return dec1
+
+
+    def forward(self, inputs):
+
+        down1, indices_1, unpool_shape1 = self.down1(inputs)
+        down2, indices_2, unpool_shape2 = self.down2(down1)
+        down3, indices_3, unpool_shape3 = self.down3(down2)
+        down4, indices_4, unpool_shape4 = self.down4(down3)
+        down5, indices_5, unpool_shape5 = self.down5(down4)
+
+        up5 = self.up5(down5, indices_5, unpool_shape5)
+        up4 = self.up4(up5, indices_4, unpool_shape4)
+        up3 = self.up3(up4, indices_3, unpool_shape3)
+        up2 = self.up2(up3, indices_2, unpool_shape2)
+        up1 = self.up1(up2, indices_1, unpool_shape1)
+
+class segnet(nn.Module):
+    def __init__(self, num_classes, in_channels=3, is_unpooling=True):
+        super(segnet, self).__init__()
+
+        self.num_classes = num_classes
+        self.in_channels = in_channels
+        self.is_unpooling = is_unpooling
+
+        self.enc1 = seg_enc_type1(self.in_channels, 64)
+        self.enc2 = seg_enc_type1(64, 128)
+        self.enc3 = seg_enc_type2(128, 256)
+        self.enc4 = seg_enc_type2(256, 512)
+        self.enc5 = seg_enc_type2(512, 512)
+
+        self.up5 = seg_dec_type2(512, 512)
+        self.up4 = seg_dec_type2(512, 256)
+        self.up3 = seg_dec_type2(256, 128)
+        self.up2 = seg_dec_type1(128, 64)
+        self.up1 = seg_dec_type1(64, self.num_classes)
+
+    def forward(self, inputs):
+
+        enc1, indices_1, unpool_shape1 = self.enc1(inputs)
+        enc2, indices_2, unpool_shape2 = self.enc2(enc1)
+        enc3, indices_3, unpool_shape3 = self.enc3(enc2)
+        enc4, indices_4, unpool_shape4 = self.enc4(enc3)
+        enc5, indices_5, unpool_shape5 = self.enc5(enc4)
+
+        up5 = self.up5(enc5, indices_5, unpool_shape5)
+        up4 = self.up4(up5, indices_4, unpool_shape4)
+        up3 = self.up3(up4, indices_3, unpool_shape3)
+        up2 = self.up2(up3, indices_2, unpool_shape2)
+        up1 = self.up1(up2, indices_1, unpool_shape1)
+
+        return up1
+
+    def init_vgg16_params(self, vgg16):            #initialise params for encoding block with pretrained vgg
+        blocks = [self.enc1, self.enc2, self.enc3, self.enc4, self.enc5]
+
+        ranges = [[0, 4], [5, 9], [10, 16], [17, 23], [24, 29]]
+        features = list(vgg16.features.children())
+
+        vgg_layers = []
+        for _layer in features:
+            if isinstance(_layer, nn.Conv2d):
+                vgg_layers.append(_layer)
+
+        merged_layers = []
+        for idx, conv_block in enumerate(blocks):
+            if idx < 2:
+                units = [conv_block.conv1.cbr_unit, conv_block.conv2.cbr_unit]
+            else:
+                units = [
+                    conv_block.conv1.cbr_unit,
+                    conv_block.conv2.cbr_unit,
+                    conv_block.conv3.cbr_unit,
+                ]
+            for _unit in units:
+                for _layer in _unit:
+                    if isinstance(_layer, nn.Conv2d):
+                        merged_layers.append(_layer)
+
+        assert len(vgg_layers) == len(merged_layers)         #sanity check
+
+        for l1, l2 in zip(vgg_layers, merged_layers):
+            if isinstance(l1, nn.Conv2d) and isinstance(l2, nn.Conv2d):
+                assert l1.weight.size() == l2.weight.size()
+                assert l1.bias.size() == l2.bias.size()
+                l2.weight.data = l1.weight.data
+                l2.bias.data = l1.bias.data

@@ -1,1 +1,9 @@
 data/
+data.zip
+weighted_fcn.pth
+weights_fcn.pth
+weights_segnet.pth
+weights_segnet_ep8.pth
+weights_wt-segnet.pth
+weights_wt_segnet_sameOP.pth
+

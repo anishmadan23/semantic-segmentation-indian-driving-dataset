@@ -46,7 +46,7 @@ with open('label_to_id_map.txt','w+') as fff:
 prev_data_path = 'Anue_dataset/'
 new_data_path = 'labelled_Anue_dataset/'
 lab_path = 'gtFine'
-im_path = 'leftImg8bit'                     #(This folder was copied to new_data_path as it is)
+im_path = 'leftImg8bit_orig'                     #(This folder was copied to new_data_path as it is)
 modes = ['train','test','val'] 
 
 
@@ -56,24 +56,24 @@ modes = ['train','test','val']
 # 1 class_id which corresponds to a particular class
 
 
-for mode in modes:
-    old_imgs_path = os.path.join(prev_data_path,im_path,mode)
-    old_anno_path = os.path.join(prev_data_path,lab_path,mode)
+# for mode in modes:
+#     old_imgs_path = os.path.join(prev_data_path,im_path,mode)
+#     old_anno_path = os.path.join(prev_data_path,lab_path,mode)
     
-    imgs = os.listdir(old_imgs_path)
-    for img_ in imgs:
-        anno_file_name = str(img_[:img_.find('_')])+str('_gtFine_polygons.json')
-        anno_file = os.path.join(old_anno_path,anno_file_name)
+#     imgs = os.listdir(old_imgs_path)
+#     for img_ in imgs:
+#         anno_file_name = str(img_[:img_.find('_')])+str('_gtFine_polygons.json')
+#         anno_file = os.path.join(old_anno_path,anno_file_name)
         
-        with open(anno_file) as ff:
-            data = json.load(ff)
-            cur_img = cv2.imread(os.path.join(old_imgs_path,img_),cv2.IMREAD_UNCHANGED)
-            for i, obj in enumerate(data['objects']):
-                obj_label = obj['label']
-                color_tuple = tuple(label_to_color_map[obj_label])
-                cv2.fillPoly(cur_img,[np.array(obj['polygon']).astype(np.int32)],color=color_tuple)
-            save_path = os.path.join(new_data_path,im_path,mode,img_)
-            cv2.imwrite(save_path, cur_img)
+#         with open(anno_file) as ff:
+#             data = json.load(ff)
+#             cur_img = cv2.imread(os.path.join(old_imgs_path,img_),cv2.IMREAD_UNCHANGED)
+#             for i, obj in enumerate(data['objects']):
+#                 obj_label = obj['label']
+#                 color_tuple = tuple(label_to_color_map[obj_label])
+#                 cv2.fillPoly(cur_img,[np.array(obj['polygon']).astype(np.int32)],color=color_tuple)
+#             save_path = os.path.join(new_data_path,im_path,mode,img_)
+#             cv2.imwrite(save_path, cur_img)
             
             
 
@@ -81,7 +81,7 @@ for mode in modes:
 # In[87]:
 
 
-labelled_gt = 'labelled_gt'
+labelled_gt = 'gt_labels'
 modes = ['train','test','val']
 for mode in modes:
     imgs_path = os.path.join(new_data_path,im_path,mode)
