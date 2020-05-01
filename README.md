@@ -22,7 +22,7 @@ We create segmentation maps as .png files and store them in the seg directory. R
 ## Models
 We refer to the implementaion by [zijundeng](https://github.com/zijundeng/pytorch-semantic-segmentation) for FCN8s and SegNet architectures. We use a pretrained VGG16 and pretrained VGG19 with batch normalization layers as a feature extractor for FCN8s and SegNet respectively.
 
-The weights for the trained models are available [here]()
+The weights for the trained models are available [here](https://drive.google.com/drive/folders/1O7DhhZuJGWqSjCkbcv-uWFDDb5o1IVce?usp=sharing).
 
 ## Results
 #### Accuracy And IOU Scores
