@@ -16,7 +16,7 @@ For each image, we have a json file containing the number of different classes i
   - seg
     -- train
     --val
-We create segmentation maps as .png files and store them in the seg directory. Refer to [Preprocessing.ipynb]() to understand how the preprocessing is done.
+We create segmentation maps as .png files and store them in the seg directory. Refer to [Preprocessing.ipynb](https://github.com/anishmadan23/semantic-segmentation-indian-driving-dataset/blob/master/Preprocessing.ipynb) to understand how the preprocessing is done.
 
 ## Models
 We refer to the implementaion by [zijundeng](https://github.com/zijundeng/pytorch-semantic-segmentation) for FCN8s and SegNet architectures. We use a pretrained VGG16 and pretrained VGG19 with batch normalization layers as a feature extractor for FCN8s and SegNet respectively.
