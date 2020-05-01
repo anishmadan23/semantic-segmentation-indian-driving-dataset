@@ -29,14 +29,19 @@ The weights for the trained models are available [here](https://drive.google.com
 The following summarises the accuracy and IOU for the trained networks on the validation set:
 | Model  | Accuracy | IOU |
 | ------------- | ------------- | ------------- |
-| FCN8s  |   |   |
-| SegNet |   |   |
+| FCN8s  | 74.46  | 60.23  |
+| SegNet | 79.19  | 63.44  |
 
 #### Qualitative Results for FCN8s
 The following are the visualizations of the output for the FCN8s (from left to right- input, ground truth, model output):
 
+![screenschot](https://github.com/anishmadan23/semantic-segmentation-indian-driving-dataset/blob/master/imgs/fcn.png)
+
 #### Qualitative Results for SegNet
 The following are the visualizations of the output for the SegNet (from left to right- input, ground truth, model output):
+
+![screenschot](https://github.com/anishmadan23/semantic-segmentation-indian-driving-dataset/blob/master/imgs/segnet.png)
+
 
 ## Acknowledgements
 We would like to thank Dr. Saket Anand for providing us with the Indian Driving Dataset for this project. We would also like to thank Zijun Deng for making their repository on semantic segmentation publicly available which we have referred to for FCN and SegNet architectures.
