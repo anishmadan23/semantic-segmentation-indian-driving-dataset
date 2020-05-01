@@ -12,10 +12,11 @@ The Indian Driving Dataset consists of 6906 and 979 high resolution images in th
 For each image, we have a json file containing the number of different classes in the image and the polygon vertices for segmentation map of each class. We simplify this directory structure as follows:
   - img
     - train
-    -val
+    - val
   - seg
     - train
-    -val
+    - val
+    
 We create segmentation maps as .png files and store them in the seg directory. Refer to [Preprocessing.ipynb](https://github.com/anishmadan23/semantic-segmentation-indian-driving-dataset/blob/master/Preprocessing.ipynb) to understand how the preprocessing is done.
 
 ## Models
