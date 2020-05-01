@@ -42,3 +42,4 @@ The following are the visualizations of the output for the SegNet (from left to 
 We would like to thank Dr. Saket Anand for providing us with the Indian Driving Dataset for this project. We would also like to thank Zijun Deng for making their repository on semantic segmentation publicly available which we have referred to for FCN and SegNet architectures.
 
 ###### This work was done as part of our project for CSE343: Machine Learning course at IIIT Delhi.
+###### The original code can be found in the '''old''' directory but with the lockdown due to COVID-19, we had some time on our hands so we decided to clean up the code.
